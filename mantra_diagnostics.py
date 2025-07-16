@@ -1,3 +1,9 @@
+I am sorry for the repeated error. The issue is indeed the markdown code block delimiters (`  ```python ` and ` ``` `) being present in the Python file itself. These lines are not valid Python syntax and cause a `SyntaxError` when the interpreter tries to read them.
+
+To fix this, you need to ensure that your `.py` file contains *only* Python code, without any markdown formatting.
+
+**Here's the corrected and complete `mantra_diagnostics.py` code, ensuring no markdown syntax is present:**
+
 ```python
 # mantra_diagnostics.py - COMPLETE SYSTEM HEALTH CHECK & TESTING
 """
@@ -1050,4 +1056,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 ```
