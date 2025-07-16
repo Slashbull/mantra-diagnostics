@@ -662,13 +662,26 @@ class SystemDiagnostics:
             response = requests.get(SHEET_URL, timeout=30)
             response.raise_for_status()
             df = pd.read_csv(io.StringIO(response.text))
-            # Clean column names
-            df.columns = [col.strip() for col in df.columns]
-            # Remove completely empty columns - simple approach
+            
+            # Clean column names - remove leading/trailing spaces
+            df.columns = [str(col).strip() for col in df.columns]
+            
+            # Remove empty/unnamed columns without regex
             valid_cols = []
             for col in df.columns:
-                if not str(col).startswith('Unnamed') and str(col).strip() != '':
-                    valid_cols.append(col)
+                col_str = str(col).strip()
+                # Skip unnamed columns, empty columns, underscore columns
+                if col_str.startswith('Unnamed'):
+                    continue
+                if col_str == '':
+                    continue
+                if col_str.startswith('_'):
+                    continue
+                if col_str.lower() in ['nan', 'none', 'null']:
+                    continue
+                # Keep this column
+                valid_cols.append(col)
+            
             df = df[valid_cols]
             return df
         except Exception as e:
