@@ -664,8 +664,12 @@ class SystemDiagnostics:
             df = pd.read_csv(io.StringIO(response.text))
             # Clean column names
             df.columns = [col.strip() for col in df.columns]
-            # Remove completely empty columns
-            df = df.loc[:, ~df.columns.str.match('^Unnamed')]
+            # Remove completely empty columns - simple approach
+            valid_cols = []
+            for col in df.columns:
+                if not str(col).startswith('Unnamed') and str(col).strip() != '':
+                    valid_cols.append(col)
+            df = df[valid_cols]
             return df
         except Exception as e:
             st.error(f"Failed to load data: {str(e)}")
@@ -689,6 +693,12 @@ class SystemDiagnostics:
         
         # Basic calculations (with error handling)
         try:
+            # First ensure volume columns are numeric
+            volume_cols = ['volume_90d', 'volume_180d', 'vol_ratio_30d_90d', 'vol_ratio_30d_180d']
+            for col in volume_cols:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+            
             if all(col in df.columns for col in ['vol_ratio_30d_90d', 'vol_ratio_30d_180d']):
                 # Ensure columns are numeric
                 df['vol_ratio_30d_90d'] = pd.to_numeric(df['vol_ratio_30d_90d'], errors='coerce')
@@ -936,7 +946,7 @@ if __name__ == "__main__":
         # Convert numeric columns - MORE COMPREHENSIVE LIST
         numeric_keywords = ['price', 'volume', 'ret_', 'pe', 'eps', 'sma_', 
                           'vol_ratio', 'low_', 'high_', 'from_', 'market_cap', 
-                          '_pct', 'rvol', 'prev_close', 'close']
+                          '_pct', 'rvol', 'prev_close', 'close', '_90d', '_180d']
         
         for col in df.columns:
             # Check if column contains any numeric keyword
